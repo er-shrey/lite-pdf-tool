@@ -14,6 +14,21 @@ No account, no network permission, no analytics, no document history.
 
 Android 12 (API 31) and up. Licence: GPL-3.0.
 
+## Download
+
+[**LitePdfTool-1.0.0.apk**](https://github.com/er-shrey/lite-pdf-tool/releases/download/v1.0.0/LitePdfTool-1.0.0.apk)
+(16 MB) from the [v1.0.0 release](https://github.com/er-shrey/lite-pdf-tool/releases/tag/v1.0.0).
+Install it on the phone and allow installs from your browser or file manager when Android asks.
+To open PDFs with it by default, choose **Lite PDF Tool** → **Always** the next time you open a PDF.
+
+## Screenshots
+
+| Home | Viewer with search | Arrange pages |
+|:---:|:---:|:---:|
+| <img src="docs/screenshots/01-home.png" width="240" alt="Home screen"> | <img src="docs/screenshots/02-viewer-search.png" width="240" alt="PDF viewer with a highlighted search match"> | <img src="docs/screenshots/03-arrange.png" width="240" alt="Image list with drag handles, rotate and remove"> |
+| **Preview (A4)** | **PDF settings** | **Done** |
+| <img src="docs/screenshots/04-preview.png" width="240" alt="Page preview in A4 mode"> | <img src="docs/screenshots/05-settings.png" width="240" alt="Page size, page numbers and file name"> | <img src="docs/screenshots/06-success.png" width="240" alt="PDF created with file name, pages, size and location"> |
+
 ## Build
 
 ```bash
