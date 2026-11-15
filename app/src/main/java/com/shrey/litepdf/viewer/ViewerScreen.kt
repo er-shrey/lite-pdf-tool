@@ -1,6 +1,9 @@
 package com.shrey.litepdf.viewer
 
 import androidx.activity.compose.BackHandler
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -46,6 +49,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -55,6 +59,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalAccessibilityManager
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.input.ImeAction
@@ -65,6 +70,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.shrey.litepdf.core.pdfview.OpenPdf
 import com.shrey.litepdf.core.ui.Share
+import kotlinx.coroutines.delay
 import kotlin.math.roundToInt
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -147,6 +153,19 @@ private fun Reader(pdf: OpenPdf, vm: ViewerViewModel, search: SearchState) {
         }
     }
 
+    // The page chip fades out when the reader is idle (clean screenshots) and comes back on any
+    // scroll, zoom, pan or tap. The delay honours the user's accessibility timeout setting.
+    var chipsVisible by remember { mutableStateOf(true) }
+    var taps by remember { mutableIntStateOf(0) }
+    val a11y = LocalAccessibilityManager.current
+    val hideAfter = remember(a11y) { a11y?.calculateRecommendedTimeoutMillis(1_000, containsControls = true) ?: 1_000 }
+    LaunchedEffect(listState.isScrollInProgress, zoom.zoom, zoom.panX, taps, goTo) {
+        chipsVisible = true
+        if (listState.isScrollInProgress || goTo) return@LaunchedEffect
+        delay(hideAfter)
+        chipsVisible = false
+    }
+
     // Bring the current search match into view.
     LaunchedEffect(search.current, search.hits) {
         val hit = search.hits.getOrNull(search.current) ?: return@LaunchedEffect
@@ -170,6 +189,7 @@ private fun Reader(pdf: OpenPdf, vm: ViewerViewModel, search: SearchState) {
             currentHit = search.current,
             loadBitmap = vm::render,
             cachedBitmap = vm::cached,
+            onTap = { taps++ },
         )
         if (search.running) {
             Surface(
@@ -184,8 +204,14 @@ private fun Reader(pdf: OpenPdf, vm: ViewerViewModel, search: SearchState) {
                 )
             }
         }
+        AnimatedVisibility(
+            visible = chipsVisible,
+            enter = fadeIn(),
+            exit = fadeOut(),
+            modifier = Modifier.align(Alignment.BottomCenter),
+        ) {
         Row(
-            Modifier.align(Alignment.BottomCenter).navigationBarsPadding().padding(12.dp),
+            Modifier.navigationBarsPadding().padding(12.dp),
             horizontalArrangement = Arrangement.spacedBy(8.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
@@ -215,6 +241,7 @@ private fun Reader(pdf: OpenPdf, vm: ViewerViewModel, search: SearchState) {
                     Icon(Icons.Default.FitScreen, "Fit to width", Modifier.padding(8.dp).size(20.dp))
                 }
             }
+        }
         }
     }
 

@@ -27,6 +27,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.ChevronLeft
 import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.OpenInNew
@@ -308,7 +309,13 @@ fun GeneratingScreen(done: Int, total: Int, onCancel: () -> Unit) {
 // ---------- Success (Screen 6) ----------
 
 @Composable
-fun SuccessScreen(result: PdfGenerationResult, onOpen: () -> Unit, onShare: () -> Unit, onAnother: () -> Unit) {
+fun SuccessScreen(
+    result: PdfGenerationResult,
+    onOpen: () -> Unit,
+    onShare: () -> Unit,
+    onAnother: () -> Unit,
+    onHome: () -> Unit,
+) {
     val context = LocalContext.current
     FlowScaffold(title = "PDF created", onBack = null, bottom = {
         Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -320,7 +327,12 @@ fun SuccessScreen(result: PdfGenerationResult, onOpen: () -> Unit, onShare: () -
                     Icon(Icons.Default.Share, null, Modifier.size(18.dp)); Spacer(Modifier.width(8.dp)); Text("Share")
                 }
             }
-            OutlinedButton(onClick = onAnother, modifier = Modifier.fillMaxWidth()) { Text("Create another") }
+            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                OutlinedButton(onClick = onHome, modifier = Modifier.weight(1f)) {
+                    Icon(Icons.Default.Home, null, Modifier.size(18.dp)); Spacer(Modifier.width(8.dp)); Text("Home")
+                }
+                OutlinedButton(onClick = onAnother, modifier = Modifier.weight(1f)) { Text("Create another") }
+            }
         }
     }) { modifier ->
         Column(modifier.padding(24.dp), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {

@@ -94,6 +94,7 @@ fun ZoomablePages(
     loadBitmap: suspend (page: Int, width: Int) -> Bitmap?,
     cachedBitmap: (page: Int, width: Int) -> Bitmap?,
     modifier: Modifier = Modifier,
+    onTap: () -> Unit = {},
 ) {
     BoxWithConstraints(
         modifier
@@ -126,7 +127,7 @@ fun ZoomablePages(
                 }
             }
             .pointerInput(Unit) {
-                detectTapGestures(onDoubleTap = { p ->
+                detectTapGestures(onTap = { onTap() }, onDoubleTap = { p ->
                     val target = if (zoomState.zoom > 1.05f) 1f else ZoomState.DOUBLE_TAP
                     applyZoom(zoomState, listState, p, target)
                     zoomState.renderZoom = zoomState.zoom

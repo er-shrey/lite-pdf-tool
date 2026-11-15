@@ -13,8 +13,8 @@ android {
         applicationId = "com.shrey.litepdf"
         minSdk = 31
         targetSdk = 36
-        versionCode = 1
-        versionName = "1.0.0"
+        versionCode = 2
+        versionName = "1.0.1"
 
         // PDFium ships native code per ABI. x86_64 is kept for emulators.
         ndk { abiFilters += listOf("arm64-v8a", "armeabi-v7a", "x86_64") }

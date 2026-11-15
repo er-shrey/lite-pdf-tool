@@ -8,6 +8,7 @@ import androidx.lifecycle.viewModelScope
 import com.shrey.litepdf.core.pdfgen.PageSize
 import com.shrey.litepdf.core.pdfgen.PdfConfiguration
 import com.shrey.litepdf.core.storage.FileNames
+import com.shrey.litepdf.core.storage.PdfStore
 import com.shrey.litepdf.imagetopdf.ImageListOps
 import com.shrey.litepdf.imagetopdf.ImageProbe
 import com.shrey.litepdf.imagetopdf.ImageReadException
@@ -23,7 +24,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
-enum class Screen { HOME, ARRANGE, PREVIEW, CONFIGURE, GENERATING, SUCCESS }
+enum class Screen { HOME, LIBRARY, ARRANGE, PREVIEW, CONFIGURE, GENERATING, SUCCESS }
 
 /**
  * Navigation plus the image-to-PDF session. Everything that matters survives process death via
@@ -46,17 +47,36 @@ class MainViewModel(app: Application, private val saved: SavedStateHandle) : And
     private val _error = MutableStateFlow<String?>(null)
     val error: StateFlow<String?> = _error
 
+    /** PDFs already in the output folder; null while loading. */
+    private val _library = MutableStateFlow<List<PdfStore.Listed>?>(null)
+    val library: StateFlow<List<PdfStore.Listed>?> = _library
+
     private var job: Job? = null
 
     init {
         // A generation can't resume after process death; its partial file is cleaned at launch.
         if (screen.value == Screen.GENERATING) go(Screen.CONFIGURE)
         if (screen.value == Screen.SUCCESS && result.value == null) go(Screen.HOME)
+        if (screen.value == Screen.LIBRARY) refreshLibrary()
     }
 
     fun go(s: Screen) { saved[KEY_SCREEN] = s }
 
     private fun setImages(list: List<SelectedImage>) { saved[KEY_IMAGES] = ArrayList(list) }
+
+    /** Image to PDF opens on the list of PDFs already created; "New PDF" starts the picker flow. */
+    fun openLibrary() {
+        go(Screen.LIBRARY)
+        refreshLibrary()
+    }
+
+    fun refreshLibrary() {
+        viewModelScope.launch {
+            _library.value = withContext(Dispatchers.IO) {
+                runCatching { PdfStore.listSaved(getApplication()) }.getOrDefault(emptyList())
+            }
+        }
+    }
 
     fun startImageFlow() = go(Screen.ARRANGE)
 
@@ -128,12 +148,13 @@ class MainViewModel(app: Application, private val saved: SavedStateHandle) : And
         go(Screen.CONFIGURE)
     }
 
-    /** "Create another": a clean session. */
-    fun reset() {
+    /** Clears the session (images, name, result) and goes to [to]. */
+    fun reset(to: Screen = Screen.HOME) {
         setImages(emptyList())
         saved[KEY_NAME] = ""
         saved[KEY_RESULT] = null
-        go(Screen.HOME)
+        go(to)
+        if (to == Screen.LIBRARY) refreshLibrary()
     }
 
     fun defaultName() = FileNames.defaultBaseName()

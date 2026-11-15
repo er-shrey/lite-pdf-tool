@@ -71,6 +71,38 @@ object PdfStore {
         stale.forEach { delete(context, it) }
     }
 
+    data class Listed(val uri: Uri, val fileName: String, val sizeBytes: Long, val modifiedMillis: Long)
+
+    /**
+     * PDFs in Documents/Lite-PDF-Tool/, newest first. Read straight from MediaStore each time (no
+     * database). Without a storage permission Android only returns files this app installation
+     * created, so PDFs from before an uninstall, or copied in by other apps, are not listed.
+     */
+    fun listSaved(context: Context): List<Listed> {
+        val projection = arrayOf(
+            MediaStore.MediaColumns._ID,
+            MediaStore.MediaColumns.DISPLAY_NAME,
+            MediaStore.MediaColumns.SIZE,
+            MediaStore.MediaColumns.DATE_MODIFIED,
+        )
+        val selection = "${MediaStore.MediaColumns.RELATIVE_PATH}=? AND ${MediaStore.MediaColumns.MIME_TYPE}=?"
+        val out = ArrayList<Listed>()
+        context.contentResolver.query(
+            collection(), projection, selection, arrayOf(RELATIVE_PATH, "application/pdf"),
+            "${MediaStore.MediaColumns.DATE_MODIFIED} DESC",
+        )?.use { c ->
+            while (c.moveToNext()) {
+                out += Listed(
+                    uri = Uri.withAppendedPath(collection(), c.getLong(0).toString()),
+                    fileName = c.getString(1) ?: "Untitled.pdf",
+                    sizeBytes = c.getLong(2),
+                    modifiedMillis = c.getLong(3) * 1000,
+                )
+            }
+        }
+        return out
+    }
+
     fun freeBytes(): Long = runCatching { StatFs(Environment.getExternalStorageDirectory().path).availableBytes }
         .getOrDefault(Long.MAX_VALUE)
 }

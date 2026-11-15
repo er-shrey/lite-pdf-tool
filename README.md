@@ -5,19 +5,24 @@ No account, no network permission, no analytics, no document history.
 
 - **PDF viewer**: opens PDFs from Files, Gmail, WhatsApp, browsers (`ACTION_VIEW` / `ACTION_SEND`,
   `content://` URIs only). Continuous vertical scrolling, pinch and double-tap zoom, fit to
-  width, a page counter with go-to-page, text search with highlighted matches, share, and
-  password-protected PDFs.
-- **Image to PDF**: pick images with the system Photo Picker, add more in later batches (they
+  width, a page counter with go-to-page (it fades out when you stop scrolling, for clean
+  screenshots), text search with highlighted matches, share, and password-protected PDFs.
+- **Image to PDF**: opens on the list of PDFs already in `Documents/Lite-PDF-Tool/` (open or
+  share them), then **New PDF** lets you pick images with the system Photo Picker, add more in later batches (they
   are appended, never replacing the current order), drag to reorder, rotate, remove, preview,
   choose Original size or A4, page numbers on or off, custom file name. Output goes to
-  `Documents/Lite-PDF-Tool/`; name clashes become `Name (1).pdf`.
+  `Documents/Lite-PDF-Tool/`; name clashes become `Name (1).pdf`. The finish screen has Open,
+  Share, Create another and Home.
+
+  Without a storage permission Android only shows the app the PDFs it created itself, so files
+  from before a reinstall, or copied into the folder by other apps, are not listed.
 
 Android 12 (API 31) and up. Licence: GPL-3.0.
 
 ## Download
 
-[**LitePdfTool-1.0.0.apk**](https://github.com/er-shrey/lite-pdf-tool/releases/download/v1.0.0/LitePdfTool-1.0.0.apk)
-(16 MB) from the [v1.0.0 release](https://github.com/er-shrey/lite-pdf-tool/releases/tag/v1.0.0).
+[**LitePdfTool-1.0.1.apk**](https://github.com/er-shrey/lite-pdf-tool/releases/download/v1.0.1/LitePdfTool-1.0.1.apk)
+(16 MB) from the [latest release](https://github.com/er-shrey/lite-pdf-tool/releases/latest).
 Install it on the phone and allow installs from your browser or file manager when Android asks.
 To open PDFs with it by default, choose **Lite PDF Tool** → **Always** the next time you open a PDF.
 

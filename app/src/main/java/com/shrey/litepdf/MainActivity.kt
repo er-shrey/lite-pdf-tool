@@ -20,12 +20,14 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
+import androidx.lifecycle.compose.LifecycleResumeEffect
 import com.shrey.litepdf.core.ui.LitePdfTheme
 import com.shrey.litepdf.core.ui.Share
 import com.shrey.litepdf.home.HomeScreen
 import com.shrey.litepdf.imagetopdf.ArrangeScreen
 import com.shrey.litepdf.imagetopdf.ConfigureScreen
 import com.shrey.litepdf.imagetopdf.GeneratingScreen
+import com.shrey.litepdf.imagetopdf.LibraryScreen
 import com.shrey.litepdf.imagetopdf.PreviewScreen
 import com.shrey.litepdf.imagetopdf.SuccessScreen
 
@@ -57,6 +59,7 @@ private fun App(vm: MainViewModel, version: String) {
     val message by vm.message.collectAsState()
     val progress by vm.progress.collectAsState()
     val error by vm.error.collectAsState()
+    val library by vm.library.collectAsState()
     var confirmDiscard by rememberSaveable { mutableStateOf(false) }
     var autoPicked by rememberSaveable { mutableStateOf(false) }
 
@@ -80,11 +83,12 @@ private fun App(vm: MainViewModel, version: String) {
 
     BackHandler(enabled = screen != Screen.HOME) {
         when (screen) {
-            Screen.ARRANGE -> if (images.isEmpty()) vm.go(Screen.HOME) else confirmDiscard = true
+            Screen.LIBRARY -> vm.go(Screen.HOME)
+            Screen.ARRANGE -> if (images.isEmpty()) vm.openLibrary() else confirmDiscard = true
             Screen.PREVIEW -> vm.go(Screen.ARRANGE)
             Screen.CONFIGURE -> vm.go(Screen.PREVIEW)
             Screen.GENERATING -> vm.cancelGeneration()
-            Screen.SUCCESS -> vm.reset()
+            Screen.SUCCESS -> vm.reset(Screen.LIBRARY)
             Screen.HOME -> Unit
         }
     }
@@ -93,8 +97,22 @@ private fun App(vm: MainViewModel, version: String) {
         Screen.HOME -> HomeScreen(
             version = version,
             onOpenPdf = { openPdf.launch(arrayOf("application/pdf")) },
-            onImagesToPdf = vm::startImageFlow,
+            onImagesToPdf = vm::openLibrary,
         )
+        Screen.LIBRARY -> {
+            // Re-read the folder whenever the screen comes back (files may change in other apps).
+            LifecycleResumeEffect(Unit) {
+                vm.refreshLibrary()
+                onPauseOrDispose { }
+            }
+            LibraryScreen(
+                pdfs = library,
+                onNew = vm::startImageFlow,
+                onOpen = { Share.openInViewer(context, it.uri) },
+                onShare = { Share.pdf(context, it.uri, it.fileName) },
+                onBack = { vm.go(Screen.HOME) },
+            )
+        }
         Screen.ARRANGE -> ArrangeScreen(
             images = images,
             adding = adding,
@@ -105,7 +123,7 @@ private fun App(vm: MainViewModel, version: String) {
             onRotate = vm::rotate,
             onRemove = vm::remove,
             onPreview = { vm.go(Screen.PREVIEW) },
-            onBack = { if (images.isEmpty()) vm.go(Screen.HOME) else confirmDiscard = true },
+            onBack = { if (images.isEmpty()) vm.openLibrary() else confirmDiscard = true },
         )
         Screen.PREVIEW -> PreviewScreen(
             images = images,
@@ -135,7 +153,8 @@ private fun App(vm: MainViewModel, version: String) {
                 result = r,
                 onOpen = { Share.openInViewer(context, r.uri) },
                 onShare = { Share.pdf(context, r.uri, r.fileName) },
-                onAnother = { vm.reset(); vm.startImageFlow() },
+                onAnother = { vm.reset(Screen.ARRANGE) },
+                onHome = { vm.reset(Screen.HOME) },
             )
         }
     }
@@ -145,7 +164,7 @@ private fun App(vm: MainViewModel, version: String) {
             onDismissRequest = { confirmDiscard = false },
             title = { Text("Discard selection?") },
             text = { Text("The ${images.size} selected images and their order will be cleared.") },
-            confirmButton = { TextButton(onClick = { confirmDiscard = false; vm.reset() }) { Text("Discard") } },
+            confirmButton = { TextButton(onClick = { confirmDiscard = false; vm.reset(Screen.LIBRARY) }) { Text("Discard") } },
             dismissButton = { TextButton(onClick = { confirmDiscard = false }) { Text("Keep") } },
         )
     }
