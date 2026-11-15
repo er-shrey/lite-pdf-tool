@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Lite PDF Tool</string>
+    <string name="viewer_label">Lite PDF Viewer</string>
+</resources>

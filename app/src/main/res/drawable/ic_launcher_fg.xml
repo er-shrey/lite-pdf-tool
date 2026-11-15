@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- A page with a folded corner and three text lines, inside the 66dp safe zone. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp" android:height="108dp"
+    android:viewportWidth="108" android:viewportHeight="108">
+    <path android:fillColor="#FFFFFFFF"
+        android:pathData="M38,30 L62,30 L72,40 L72,78 L38,78 Z" />
+    <path android:fillColor="#FFF4C7C3"
+        android:pathData="M62,30 L72,40 L62,40 Z" />
+    <path android:fillColor="#FFC62828"
+        android:pathData="M44,50 h22 v3 h-22 Z M44,57 h22 v3 h-22 Z M44,64 h14 v3 h-14 Z" />
+</vector>
